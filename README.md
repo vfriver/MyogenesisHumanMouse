@@ -1,4 +1,4 @@
-# MyogenesisHumanMouse
+# Myogenesis Human and Mouse
 A comparative RNA-seq dataset of human (LHCN-M2) and mouse (C2C12) myogenesis. 
 Project Overview: Comparative Transcriptomics of Myogenesis
 Skeletal muscle formation and regeneration is a tightly regulated process involving extensive transcriptional reprogramming. While the transition from proliferating myoblasts to mature myotubes is well-studied, a stringent comparative analysis between human and mouse myogenic landscapes has been lacking.
@@ -9,7 +9,7 @@ Human: LHCN-M2 myogenic cells.
 
 Mouse: C2C12 myogenic cells.
 
-Key Features of the Dataset:
+# Key Features of the Dataset:
 
 Unified Protocol: Samples were collected from proliferating myoblasts, early differentiation, and mature myocytes using identical protocols to ensure maximum comparability.
 
@@ -17,7 +17,7 @@ Divergent Trajectories: While global features are shared, our analysis reveals d
 
 In Vivo Comparison: Bulk RNA-seq data is integrated with tissue-derived single-cell muscle datasets to distinguish conserved biological programs from culture-specific artifacts.
 
-Interactive Exploration
+# Interactive Exploration
 
 To facilitate the study of these transcriptional shifts, we provide a Shiny Application (found in app.R). This tool allows researchers to:
 
