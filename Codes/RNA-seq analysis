@@ -1,0 +1,307 @@
+## DIFFERENTIAL EXPRESSION ANALYSIS USING DESeq2
+##
+## This script compares two experimental groups using RNA-seq
+## count data in CSV format. It performs differential gene
+## expression analysis, visualization (PCA, volcano plot,
+## heatmaps), and pathway enrichment using pathfindR.
+##
+## IMPORTANT NOTES:
+##
+## 1. The script assumes your input CSV file contains a column
+##    named exactly "Gene" (case-sensitive). This column must
+##    contain **unique gene identifiers**. If duplicates exist,
+##    they will be removed before analysis.
+##
+## 2. The comparison is always performed as:
+##       group2 vs group1
+##    So, in the example below:
+##       group1 =  (control)
+##       group2 = (experimental)
+##    A positive log2FoldChange means higher expression in Maf
+##    relative to SCR.
+##
+## 3. Only the "Gene" column name must be preserved exactly.
+##    All other column names (sample names) can vary.
+##
+## 4. The number of samples per group should be correctly reflected
+##    in the 'colData' definition. Adjust if needed.
+##
+## Output:
+## - Normalized counts
+## - Volcano plot with top regulated genes
+## - PCA of samples
+## - Heatmaps
+## - Enriched KEGG pathways using custom mouse annotations
+
+
+
+
+# Step 1: Install BiocManager if it's not already installed
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+##install packages
+
+#"DESeq2", "pathfindR")
+
+#("ggplot2", "dplyr", "ggrepel", "pheatmap", "knitr")
+
+
+# Step 5: Load all required libraries
+
+
+library(DESeq2)
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+library(pheatmap)
+library(knitr)
+library(pathfindR)
+
+
+# Load the CSV file
+countData <- read.csv("/home/DataCounts.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# Check column names
+colnames(countData)
+
+# View the first few rows to check data structure
+head(countData)
+
+# Check for duplicates in the 'Gene' column
+duplicated_rows <- duplicated(countData$Gene)
+
+# Set the 'Gene' column (now unique) as rownames
+rownames(countData) <- countData$Gene
+
+# Remove the 'Gene' column since it's now in rownames
+countData$Gene <- NULL
+
+# Create condition vector for each sample (2 groups, 4 samples per group)
+colData <- data.frame(
+  condition = factor(c(rep("grupo1", 4), rep("grupo2", 4)))  # n of 4 samples per group change the number if you have more samples 
+)
+
+# Create DESeqDataSet object
+dds <- DESeqDataSetFromMatrix(countData = countData,
+                              colData = colData,
+                              design = ~ condition)
+
+# Normalize and perform differential expression analysis
+dds <- DESeq(dds) 
+
+# Get the results
+res <- results(dds)
+
+# View results from the comparison between the two groups
+head(res)
+
+# Convert results to data frame
+res_df <- as.data.frame(res)
+
+# Add gene names as a column
+res_df$Gene <- rownames(res_df)
+
+# Get normalized count data
+norm_counts <- counts(dds, normalized = TRUE)
+
+# Convert to data frame and add gene names
+norm_counts_df <- as.data.frame(norm_counts)
+norm_counts_df$Gene <- rownames(norm_counts_df)
+
+# Merge DESeq2 results with normalized counts
+final_df <- merge(res_df, norm_counts_df, by = "Gene")
+
+# View first few rows of the combined table
+head(final_df)
+
+# Save to CSV if desired
+write.csv(final_df, "/home/DESeq2.csv", row.names = FALSE) #Change name of file and path
+
+
+
+
+
+########################################
+########### VOLCANO PLOT ###############
+########################################
+
+
+library(ggplot2)
+library(dplyr)
+library(ggrepel)  # Avoid overlapping labels
+
+# Convert results to data frame and add significance column
+res_df <- as.data.frame(res)
+res_df$Gene <- rownames(res_df)
+
+# Classify for color
+res_df$color <- "ns"  # not significant
+res_df$color[res_df$log2FoldChange > 1 & res_df$padj < 0.05] <- "up"    #Adjusted P-value (FDR) < 0.05 (Benjamini-Hochberg correction)
+res_df$color[res_df$log2FoldChange < -1 & res_df$padj < 0.05] <- "down"
+
+# Count up- and down-regulated genes
+table(res_df$color)
+
+# Filter only up- or down-regulated genes
+Tableupdown <- res_df[res_df$color %in% c("up", "down"), ]
+
+# Save to CSV if desired
+write.csv(Tableupdown, "/home/SamplesUpDown.csv", row.names = FALSE)
+
+# Select top 10 up and top 10 down by adjusted p-value
+top_up <- res_df %>%
+  filter(color == "up") %>%
+  arrange(padj) %>%
+  head(10)
+
+top_down <- res_df %>%
+  filter(color == "down") %>%
+  arrange(padj) %>%
+  head(10)
+
+top_genes <- bind_rows(top_up, top_down)
+
+ggplot(res_df, aes(x = log2FoldChange, y = -log10(pvalue))) +
+  geom_point(aes(color = color), alpha = 0.6) +
+  scale_color_manual(values = c("up" = "red", "down" = "blue", "ns" = "gray")) +
+  geom_text_repel(data = top_genes, aes(label = Gene),
+                  size = 3, max.overlaps = 100, box.padding = 0.3) +
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "black") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "black") +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(color = "black"),  # Axis numbers
+    axis.title = element_text(color = "black"), # Axis titles
+    axis.line = element_line(color = "black")   # Axis lines
+  ) +
+  labs(x = "Log2 Fold Change", y = "-Log10 padj", color = "-")
+
+
+
+#########################################
+########### PCA #########################
+#########################################
+
+# VST transformation
+vsd <- vst(dds, blind = FALSE)
+
+# Extract PCA data
+pcaData <- plotPCA(vsd, intgroup = "condition", returnData = TRUE)
+
+# Add sample names
+pcaData$sample <- rownames(pcaData)
+write.csv(pcaData, "/home/PCAdata.csv", row.names = FALSE)
+
+# Check column names (typically PC1 and PC2)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+
+# Plot with sample labels
+library(ggplot2)
+ggplot(pcaData, aes(x = PC1, y = PC2, color = condition, label = sample)) +
+  geom_point(size = 3) +
+  geom_text(vjust = -1, size = 3) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(color = "black"),
+    axis.title = element_text(color = "black")
+  )
+
+######################################
+########### HEAT MAP #################
+#####################################
+# Load the pheatmap library
+
+library(pheatmap)
+
+# Use all genes in the dataset
+# Get normalized counts for all genes
+heatmap_data <- norm_counts_df[ , -ncol(norm_counts_df)]  # Exclude the "Gene" column for the heatmap
+
+datos_scaled <- t(scale(t(heatmap_data)))
+
+## Check for NA values
+summary(datos_scaled)
+datos_scaled_clean <- datos_scaled[complete.cases(datos_scaled), ]
+
+# Cluster rows only
+pheatmap(datos_scaled_clean,
+         cluster_rows = TRUE,
+         cluster_cols = FALSE,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize = 10,
+         fontsize_row = 1)
+
+
+#################################
+###### PATHWAY ANALYSIS##########
+#################################
+
+#### Extract columns from DESeq
+# Filter only up-regulated genes
+up_genes <- res_df[res_df$color == "up", c("Gene", "log2FoldChange", "padj")]
+
+# Reset row names
+rownames(up_genes) <- NULL
+
+# View the new dataframe
+head(up_genes)
+
+library(pathfindR)
+library(cicero)
+library(dplyr)
+
+# Load custom KEGG gene sets
+mmu_kegg_genes <- readRDS("/home/mmu_kegg_genes.RDS") #change name here and path
+mmu_kegg_descriptions <- readRDS("/home/mmu_kegg_descriptions.RDS") #change name here and path
+
+# Use DE results as input
+RA_input <- up_genes 
+input <- as.data.frame(RA_input)
+set.seed(24)
+knitr::kable(head(input))
+
+# Run pathfindR (non-human analysis with custom gene sets)
+output2 <- run_pathfindR(input = input,
+                         p_val_threshold = 1,
+                         gene_sets = "Custom",
+                         custom_genes = mmu_kegg_genes,
+                         custom_descriptions = mmu_kegg_descriptions)
+
+Resultp <- as.data.frame(output2)
+write.csv(Resultp ,"/home/PathwaysUp.csv", row.names = TRUE) #change name here and path
+
+
+
+#############################################################
+############ Down-regulated genes pathway analysis###########
+#############################################################
+
+
+# Filter only down-regulated genes
+down_genes <- res_df[res_df$color == "down", c("Gene", "log2FoldChange", "padj")]
+
+# Reset row names
+rownames(down_genes) <- NULL
+
+# View the new dataframe
+head(down_genes)
+
+# Use DE results as input
+RA_input <- down_genes 
+input <- as.data.frame(RA_input)
+set.seed(24)
+knitr::kable(head(input))
+
+# Run pathfindR 
+output3 <- run_pathfindR(input = input,
+                         p_val_threshold = 0.05,
+                         gene_sets = "Custom",
+                         custom_genes = mmu_kegg_genes,
+                         custom_descriptions = mmu_kegg_descriptions)
+
+Resultp1 <- as.data.frame(output3)
+write.csv(Resultp1,"/home/PathwaysDownsamples.csv", row.names = TRUE) #change name here and path
