@@ -17,7 +17,7 @@ Mouse: C2C12 myogenic cells.
 
 Unified Protocol: Samples were collected from proliferating myoblasts, early differentiation, and mature myocytes using identical protocols to ensure maximum comparability.
 
-Divergent Trajectories: While global features are shared, our analysis reveals distinct species-specific programs (e.g., metabolic/stress-related suppression in humans vs. inflammatory/contractile enrichment in mouse).
+Divergent Trajectories: While global features are shared, our analysis reveals distinct species-specific programs.
 
 In Vivo Comparison: Bulk RNA-seq data is integrated with tissue-derived single-cell muscle datasets to distinguish conserved biological programs from culture-specific artifacts.
 
