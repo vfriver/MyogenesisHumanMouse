@@ -1,4 +1,4 @@
-# Myogenesis Human and Mouse
+# Myogenesis Human and Mouse (MyoBridge)
 A comparative RNA-seq dataset of human (LHCN-M2) and mouse (C2C12) myogenesis. 
 Project Overview: Comparative Transcriptomics of Myogenesis
 Skeletal muscle formation and regeneration is a tightly regulated process involving extensive transcriptional reprogramming. While the transition from proliferating myoblasts to mature myotubes is well-studied, a stringent comparative analysis between human and mouse myogenic landscapes has been lacking.
@@ -36,3 +36,7 @@ the first lines of the code include a detailed, step-by-step guide on how to lau
 <p align="center">
   <img src="Dataforshiny/Shiny_view.png" width="500">
 </p>
+
+
+# Authors
+This repository contains the RNA-seq datasets, processed ortholog tables, and the R Shiny application associated with our pre-print: A cellular cross-species RNA-seq atlas captures the transcriptional dynamics of myogenesis. Authors: Fernando Valdivieso-Rivera, Anastasiia Zenina,  Carlos HG Sponton,  Alexander Bartelt. Link pre-print: https://doi.org/10.64898/2025.12.03.691954
