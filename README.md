@@ -8,6 +8,7 @@ This repository hosts a high-quality RNA-sequencing dataset and an interactive e
 Human: LHCN-M2 myogenic cells.
 
 Mouse: C2C12 myogenic cells.
+![Interactive Dashboard](AbstractFigure.png)
 
 # Key Features of the Dataset:
 
