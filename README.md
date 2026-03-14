@@ -19,7 +19,7 @@ In Vivo Comparison: Bulk RNA-seq data is integrated with tissue-derived single-c
 
 # Interactive Exploration
 
-To facilitate the study of these transcriptional shifts, we provide a Shiny Application (found in app.R). This tool allows researchers to:
+To facilitate the study of these transcriptional shifts, we provide a Shiny Application (found in Dataforshiny). This tool allows researchers to:
 
 Search for any gene of interest (Human/Mouse orthologs).
 
