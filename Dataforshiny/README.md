@@ -15,3 +15,6 @@ To explore different time points of the myogenesis dataset, you can easily switc
 * **To observe Day 0:**
   ```R
   tableHM <- read.csv("log2TPM_Day0.csv")
+
+
+![Interactive Dashboard](Shiny_view.png)
