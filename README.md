@@ -26,3 +26,6 @@ Search for any gene of interest (Human/Mouse orthologs).
 Visualize expression distributions through interactive Violin Plots.
 
 Compare the timing and intensity of transcriptional reprogramming across species without requiring local computational environments.
+
+If you want to visualize the data on your local computer without writing any code, please open the directory named Dataforshiny,
+the first lines of the code include a detailed, step-by-step guide on how to launch the interactive dashboard using RStudio.
